@@ -16,6 +16,32 @@ export default {
       return this._uid
     }
   },
+  methods: {
+    generateEdges: function (nodes) {
+      let self = this
+      let edges = []
+      nodes.forEach(function (fromNode, idx, nodes) {
+        nodes.forEach(function (toNode, idx, nodes) {
+          if (fromNode.id === toNode.id) return
+
+          if (self.hasEdge(fromNode.pos, toNode.pos) === false) return
+
+          edges.push({from: fromNode.id, to: toNode.id})
+        })
+      })
+      /* eslint-disable no-new */
+      /* eslint-disable no-undef */
+      return new vis.DataSet(edges)
+    },
+    hasEdge: function (from, to) {
+      let x = from.x - to.x
+      let y = from.y - to.y
+      let sqDist = (x * x) + (y * y)
+      if (sqDist > 1000000) return false
+      console.log(sqDist)
+      return true
+    }
+  },
   mounted: function () {
     var self = this
     restClient.get('/nodes', function (res) {
@@ -24,16 +50,15 @@ export default {
       let nodes = new vis.DataSet(res.data.nodes.map(function (node) {
         return {
           id: node.id,
-          label: node.id,
+          fixed: true,
           x: node.pos.x,
-          y: node.pos.y}
+          y: node.pos.y
+        }
       }))
 
-      let edges = new vis.DataSet([])
-
       let data = {
-        nodes,
-        edges
+        nodes: nodes,
+        edges: self.generateEdges(res.data.nodes)
       }
 
       new vis.Network(document.getElementById(self.visId), data, {})
