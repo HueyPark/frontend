@@ -37,8 +37,8 @@ export default {
       let x = from.x - to.x
       let y = from.y - to.y
       let sqDist = (x * x) + (y * y)
-      if (sqDist > 1000000) return false
-      console.log(sqDist)
+      if (sqDist > (100 * 100)) return false
+
       return true
     }
   },
