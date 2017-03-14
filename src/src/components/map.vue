@@ -1,5 +1,9 @@
 <template>
-<div style="width:95vw; height:80vh; border: 1px solid lightgray; margin: 0 auto" :id="visId"></div>
+<div>
+  <div style="width:95vw; height:80vh; border: 1px solid lightgray; margin: 0 auto" :id="visId"></div>
+  <div>
+  </div>
+</div>
 </template>
 
 <script>
@@ -61,7 +65,11 @@ export default {
         edges: self.generateEdges(res.data.nodes)
       }
 
-      new vis.Network(document.getElementById(self.visId), data, {})
+      let network = new vis.Network(document.getElementById(self.visId), data, {})
+      network.on('selectNode', function (data) {
+        let node = nodes.get(data.nodes[0])
+        console.log(node)
+      })
     })
   }
 }
