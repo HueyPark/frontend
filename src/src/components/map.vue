@@ -37,14 +37,22 @@ export default {
       let edges = []
       nodes.forEach(function (fromNode, _, nodes) {
         fromNode.units.forEach(function (unit) {
-          edges.push({from: fromNode.id, to: unit.id})
+          edges.push({
+            id: fromNode.id + '_' + unit.id,
+            from: fromNode.id,
+            to: unit.id
+          })
         })
         nodes.forEach(function (toNode) {
           if (fromNode.id === toNode.id) return
 
           if (self.hasEdge(fromNode.pos, toNode.pos) === false) return
 
-          edges.push({from: fromNode.id, to: toNode.id})
+          edges.push({
+            id: fromNode.id + '_' + toNode.id,
+            from: fromNode.id,
+            to: toNode.id
+          })
         })
       })
       return edges
@@ -89,10 +97,21 @@ export default {
     readNodes: function () {
       var self = this
       restClient.get('/nodes', function (res) {
-        nodes.clear()
-        nodes.add(self.generateNodes(res.data.nodes))
-        edges.clear()
-        edges.add(self.generateEdges(res.data.nodes))
+        self.generateNodes(res.data.nodes).forEach(function (node) {
+          if (nodes.get(node.id)) {
+            nodes.update(node)
+          } else {
+            nodes.add(node)
+          }
+        })
+
+        self.generateEdges(res.data.nodes).forEach(function (edge) {
+          if (edges.get(edge.id)) {
+            edges.update(edge)
+          } else {
+            edges.add(edge)
+          }
+        })
       })
     }
   },
