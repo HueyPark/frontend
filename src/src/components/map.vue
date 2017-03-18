@@ -15,11 +15,15 @@
 
 <script>
 import restClient from '../framework/rest_client.js'
+let network = null
+let nodes = null
+let edges = null
 
 export default {
   data () {
     return {
-      selectedNodeId: undefined
+      selectedNodeId: undefined,
+      intervalID: undefined
     }
   },
   computed: {
@@ -43,9 +47,7 @@ export default {
           edges.push({from: fromNode.id, to: toNode.id})
         })
       })
-      /* eslint-disable no-new */
-      /* eslint-disable no-undef */
-      return new vis.DataSet(edges)
+      return edges
     },
     generateNodes: function (nodes) {
       let nodeData = []
@@ -65,7 +67,7 @@ export default {
         })
       })
 
-      return new vis.DataSet(nodeData)
+      return nodeData
     },
     hasEdge: function (from, to) {
       let x = from.x - to.x
@@ -87,22 +89,39 @@ export default {
     readNodes: function () {
       var self = this
       restClient.get('/nodes', function (res) {
-        /* eslint-disable no-new */
-        /* eslint-disable no-undef */
-        let data = {
-          nodes: self.generateNodes(res.data.nodes),
-          edges: self.generateEdges(res.data.nodes)
-        }
-
-        let network = new vis.Network(document.getElementById(self.visId), data, {})
-        network.on('click', function (data) {
-          self.selectedNodeId = data.nodes[0]
-        })
+        nodes.clear()
+        nodes.add(self.generateNodes(res.data.nodes))
+        edges.clear()
+        edges.add(self.generateEdges(res.data.nodes))
       })
     }
   },
   mounted: function () {
-    this.readNodes()
+    /* eslint-disable no-undef */
+    /* eslint-disable no-new */
+    nodes = new vis.DataSet()
+    edges = new vis.DataSet()
+    network = new vis.Network(
+      document.getElementById(this.visId),
+      {
+        nodes: nodes,
+        edges: edges
+      },
+      {})
+    network.on('click', function (data) {
+      this.selectedNodeId = data.nodes[0]
+    })
+
+    var self = this
+    self.readNodes()
+    this.intervalID = setInterval(
+      function () {
+        self.readNodes()
+      },
+      1000)
+  },
+  beforeDestroy: function () {
+    clearInterval(this.intervalID)
   }
 }
 </script>
