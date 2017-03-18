@@ -31,8 +31,11 @@ export default {
     generateEdges: function (nodes) {
       let self = this
       let edges = []
-      nodes.forEach(function (fromNode, idx, nodes) {
-        nodes.forEach(function (toNode, idx, nodes) {
+      nodes.forEach(function (fromNode, _, nodes) {
+        fromNode.units.forEach(function (unit) {
+          edges.push({from: fromNode.id, to: unit.id})
+        })
+        nodes.forEach(function (toNode) {
           if (fromNode.id === toNode.id) return
 
           if (self.hasEdge(fromNode.pos, toNode.pos) === false) return
@@ -44,6 +47,25 @@ export default {
       /* eslint-disable no-undef */
       return new vis.DataSet(edges)
     },
+    generateNodes: function (nodes) {
+      let nodeData = []
+      nodes.forEach(function (node) {
+        nodeData.push({
+          id: node.id,
+          fixed: true,
+          x: node.pos.x,
+          y: node.pos.y
+        })
+
+        node.units.forEach(function (unit) {
+          nodeData.push({
+            id: unit.id
+          })
+        })
+      })
+
+      return new vis.DataSet(nodeData)
+    },
     hasEdge: function (from, to) {
       let x = from.x - to.x
       let y = from.y - to.y
@@ -53,10 +75,11 @@ export default {
       return true
     },
     createUnit: function () {
+      var self = this
       restClient.post(
         '/units',
         function (res) {
-          console.log(res)
+          self.readNodes()
         },
         {node_id: this.selectedNodeId})
     },
@@ -65,17 +88,8 @@ export default {
       restClient.get('/nodes', function (res) {
         /* eslint-disable no-new */
         /* eslint-disable no-undef */
-        let nodes = new vis.DataSet(res.data.nodes.map(function (node) {
-          return {
-            id: node.id,
-            fixed: true,
-            x: node.pos.x,
-            y: node.pos.y
-          }
-        }))
-
         let data = {
-          nodes: nodes,
+          nodes: self.generateNodes(res.data.nodes),
           edges: self.generateEdges(res.data.nodes)
         }
 
