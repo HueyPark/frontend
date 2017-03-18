@@ -59,7 +59,8 @@ export default {
 
         node.units.forEach(function (unit) {
           nodeData.push({
-            id: unit.id
+            id: unit.id,
+            color: 'rgb(0,0,255)'
           })
         })
       })
